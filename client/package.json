@@ -1,0 +1,38 @@
+{
+  "name": "nodewebkit-oauth-sample",
+  "version": "0.0.1",
+  "description": "node-webkit oauth sample",
+  "main": "index.html",
+  "dependencies": {
+    "nodewebkit": "~0.8.4-2"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "start": "./node_modules/nodewebkit/bin/nodewebkit"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/georgeosddev/nodewebkit_oauth_xitrum.git"
+  },
+  "keywords": [
+    "nodewebkit",
+    "oauth"
+  ],
+  "author": "Takeharu.Oshida",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/georgeosddev/nodewebkit_oauth_xitrum/issues"
+  },
+  "window": {
+      "title": "nwoauth",
+      "toolbar": true,
+      "frame": true,
+      "width": 800,
+      "height": 500,
+      "position": "mouse",
+      "min_width": 400,
+      "min_height": 200,
+      "max_width": 800,
+      "max_height": 600
+  }
+}
