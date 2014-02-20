@@ -20,6 +20,7 @@ object Tags {
 }
 
 object ErrCds {
+  val NORMAL            = 0
   val UNAUTHORIZED      = 1
   val INVALID_MSG       = 2
   val UNKONWN_TAG       = 3

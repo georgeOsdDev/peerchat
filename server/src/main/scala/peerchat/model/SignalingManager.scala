@@ -24,8 +24,9 @@ class SignalingManager extends Actor with Log{
   private val SYSTEM = "system"
   private val UNKOWN = "unknown"
   private val FROM = "_from_"
-  private var clients = Map[String, ActorRef]()
-  private var users  = Map[String, String]()
+  private var clients     = Map[String, ActorRef]()
+  private var clientNames = Map[ActorRef, String]()
+  private var users       = Map[String, String]()
 
   private def makeHash(name:String):String = {
     val digestedBytes = MessageDigest.getInstance("MD5").digest((Config.secureKey + name).getBytes)
@@ -86,10 +87,11 @@ class SignalingManager extends Actor with Log{
                   msgObj.-(MsgKeys.TO_USER, MsgKeys.LOGIN_SVC, MsgKeys.HASH)
                         .updated(MsgKeys.FROM_USER, SYSTEM)
                         .updated(MsgKeys.DATA,      clients.keySet)
-                        .updated(MsgKeys.ERR_CD,    0)
+                        .updated(MsgKeys.ERR_CD,    ErrCds.NORMAL)
                 )
               )
             clients = clients.updated(fromUser+FROM+loginSvc, sender)
+            clientNames = clientNames.updated(sender, fromUser+FROM+loginSvc)
           }
         case Tags.OFFER | Tags.ANSWER =>
           if (!clients.contains(fromUser+FROM+loginSvc)) {
@@ -109,7 +111,7 @@ class SignalingManager extends Actor with Log{
                   )
                 sender ! MsgFromManager(Json.generate(
                     msgObj.-(MsgKeys.FROM_USER, MsgKeys.TO_USER, MsgKeys.LOGIN_SVC, MsgKeys.DATA)
-                          .updated(MsgKeys.ERR_CD, 0)
+                          .updated(MsgKeys.ERR_CD, ErrCds.NORMAL)
                     )
                   )
               case ref:ActorRef if (ref.equals(sender)) =>
@@ -138,13 +140,15 @@ class SignalingManager extends Actor with Log{
       }
 
     case Terminated(client) =>
-      clients = clients.filterNot(_ == client)
+      val clientName = clientNames.getOrElse(client, UNKOWN)
+      clientNames    = clientNames.filterNot(_ == clientName)
+      clients        = clients.filterNot(_ == client)
         clients.foreach {kv =>
-          val (name, client) = kv
-          client ! MsgFromManager(Json.generate(Map(
+          val (n, actorRef) = kv
+          actorRef ! MsgFromManager(Json.generate(Map(
                   MsgKeys.TAG       -> Tags.LEAVE,
                   MsgKeys.FROM_USER -> SYSTEM,
-                  MsgKeys.DATA      -> name
+                  MsgKeys.DATA      -> clientName
                 )
               )
             )
