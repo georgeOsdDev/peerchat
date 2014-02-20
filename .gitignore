@@ -87,4 +87,4 @@ results
 npm-debug.log
 node_modules
 
-server/config/auth.config
+server/config/auth.conf
