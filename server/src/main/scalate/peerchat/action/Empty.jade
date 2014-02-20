@@ -1,0 +1,28 @@
+- val error    = if (at.isDefinedAt("error")) atJson("error") else "'{}'"
+- val userName  = if (at.isDefinedAt("userName"))  at("userName")  else ""
+- val avatarUrl = if (at.isDefinedAt("avatarUrl")) at("avatarUrl") else ""
+- val loginSvc  = if (at.isDefinedAt("loginSvc"))  at("loginSvc")  else ""
+- val hash      = if (at.isDefinedAt("hash"))      at("hash")      else ""
+
+!!! 5
+html
+  head
+    != antiCsrfMeta
+    meta(content="text/html; charset=utf-8" http-equiv="content-type")
+    title PeerChat-Header
+    script
+      = "window.onError = function(e){alert(e.toString());};"
+      != "var error    = JSON.parse(" + error + ");"
+      = "window.addEventListener('message', function(e){"
+      = "  event.source.postMessage(JSON.stringify({"
+      = "                              error:    error,"
+      != "                             userName:  '" + userName + "',"
+      != "                             avatarUrl: '" + avatarUrl + "',"
+      != "                             loginSvc:  '" + loginSvc + "',"
+      != "                             hash:      '" + hash + "'"
+      = "                          }), event.origin);"
+      = "  window.close();"
+      = "});"
+
+  body
+    p Welcome! wait a second...

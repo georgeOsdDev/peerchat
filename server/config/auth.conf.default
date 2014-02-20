@@ -1,0 +1,24 @@
+auth {
+  twitter {
+    ConsumerKey       = ""
+    ConsumerSecret    = ""
+
+    CallbackURL       = "http://127.0.0.1:8000/twcb"
+    # These urls are managed in Twitter4J
+    # RequestTokenURL   = "https://api.twitter.com/oauth/request_token"
+    # AuthorizeURL      = "https://api.twitter.com/oauth/authorize"
+    # AccessTokenURL    = "https://api.twitter.com/oauth/access_token"
+
+  }
+  github {
+    ClientID     = ""
+    ClientSecret = ""
+
+    # Callback url is managed at Github account console
+    # CallbackURL     = "http://127.0.0.1:8000/ghcb"
+    AccsessTokenURL = "https://github.com/login/oauth/access_token"
+    UserAPIURL      = "https://api.github.com/user"
+  }
+  # Key to make hash
+  secureKey = ""
+}
