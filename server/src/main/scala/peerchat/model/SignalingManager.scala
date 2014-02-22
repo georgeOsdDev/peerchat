@@ -25,11 +25,13 @@ object SignalingManager {
 class SignalingManager extends Actor with Log{
   private val SYSTEM = "system"
   private val UNKOWN = "unknown"
-  private val FROM = "_from_"
+  private val FROM   = "_from_"
+
   private var clients     = Map[String, ActorRef]()
   private var clientNames = Map[ActorRef, String]()
   private var users       = Map[String, String]()
-  private val dbMaganer   = XConfig.actorSystem.actorOf(Props[DBManager])
+
+  lazy val dbMaganer      = XConfig.actorSystem.actorOf(Props[DBManager])
 
   private def makeHash(name:String):String = {
     val digestedBytes = MessageDigest.getInstance("MD5").digest((Config.secureKey + name).getBytes)
@@ -60,8 +62,8 @@ class SignalingManager extends Actor with Log{
       val data     = msgObj.getOrElse(MsgKeys.DATA,      UNKOWN)
       val seq      = msgObj.getOrElse(MsgKeys.SEQ,       -1)
 
-      // save dump to mongoDB
-      dbMaganer ! Dump(msgObj, sender.toString)
+      if (Config.dumpEnable.getOrElse(false)) // save dump to mongoDB
+        dbMaganer ! Dump(msgObj, sender.toString)
 
       if (isInvalidMsg(tag, loginSvc, fromUser)) {
         log.warn("Invalid message: " + msgObj.toString)

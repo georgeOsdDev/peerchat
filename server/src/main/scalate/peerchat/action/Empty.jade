@@ -13,7 +13,7 @@ html
     script
       = "window.onError = function(e){alert(e.toString());};"
       != "var error    = JSON.parse(" + error + ");"
-      = "window.addEventListener('message', function(e){"
+      = "window.addEventListener('message', function(event){"
       = "  event.source.postMessage(JSON.stringify({"
       = "                              error:    error,"
       != "                             userName:  '" + userName + "',"

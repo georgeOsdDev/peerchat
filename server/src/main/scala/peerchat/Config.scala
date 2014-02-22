@@ -14,16 +14,31 @@ class GithubConfig(config: TConfig) {
   val userAPIURL      = config.getString("UserAPIURL")
 }
 
-class DBConfig(config: TConfig) {
-  val host = config.getString("host")
-  val port = config.getInt("port")
+class DefaultDBConfig {
+  val host = "127.0.0.1"
+  val port = 27017
+}
+
+class DBConfig(config: TConfig) extends DefaultDBConfig {
+  override val host = config.getString("host")
+  override val port = config.getInt("port")
 }
 
 object Config {
   private val authConfig = xitrum.Config.application.getConfig("auth")
-  val twitter   = new TwitterConfig(authConfig.getConfig("twitter"))
-  val github    = new GithubConfig(authConfig.getConfig("github"))
-  val secureKey = authConfig.getString("secureKey")
-  val db        = new DBConfig(xitrum.Config.application.getConfig("db"))
+  val twitter    = new TwitterConfig(authConfig.getConfig("twitter"))
+  val github     = new GithubConfig(authConfig.getConfig("github"))
+  val secureKey  = authConfig.getString("secureKey")
 
+  val dumpEnable =
+    if (xitrum.Config.application.hasPath("dumpEnable"))
+      Some(xitrum.Config.application.getBoolean("dumpEnable"))
+    else
+      None
+
+  val db =
+    if (xitrum.Config.application.hasPath("db"))
+      new DBConfig(xitrum.Config.application.getConfig("db"))
+    else
+      new DefaultDBConfig()
 }
