@@ -100,7 +100,7 @@ class SignalingManager extends Actor with Log{
             clients = clients.updated(fromUser+FROM+loginSvc, sender)
             clientNames = clientNames.updated(sender, fromUser+FROM+loginSvc)
           }
-        case Tags.OFFER | Tags.ANSWER =>
+        case Tags.OFFER | Tags.ANSWER | Tags.CANDIDATE =>
           if (!clients.contains(fromUser+FROM+loginSvc)) {
               log.warn("Not joined user: " + msgObj.toString)
               sender ! MsgFromManager(Json.generate(

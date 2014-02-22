@@ -16,6 +16,7 @@ object Tags {
   val LEAVE       = "leave"
   val OFFER       = "offer"
   val ANSWER      = "answer"
+  val CANDIDATE   = "candidate"
   val NEW_MEMBER  = "new_member"
 }
 
