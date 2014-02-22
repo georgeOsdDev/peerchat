@@ -1,7 +1,7 @@
 ## PeerChat
 
                       +----------------+
-                      |  AOuth Service |
+                      |  OAuth Service |
              _________+----------------+_________
             |         | Twitter/GitHub |         |
             |         +----+------+----+         |

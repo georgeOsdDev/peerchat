@@ -2,7 +2,7 @@ package peerchat.model
 
 import java.security.MessageDigest
 
-import akka.actor.{Actor, ActorRef, Terminated}
+import akka.actor.{Actor, ActorRef, Props, Terminated}
 
 import glokka.Registry
 import xitrum.{Config => XConfig, Log}
@@ -17,6 +17,8 @@ case class MsgFromClient(msg: String, name: String)
 object SignalingManager {
   val NAME = "SignalingManager"
   val registry = Registry.start(XConfig.actorSystem, "proxy")
+      registry ! Registry.LookupOrCreate(DBManager.NAME)
+
   def start() {}
 }
 
@@ -27,6 +29,7 @@ class SignalingManager extends Actor with Log{
   private var clients     = Map[String, ActorRef]()
   private var clientNames = Map[ActorRef, String]()
   private var users       = Map[String, String]()
+  private val dbMaganer   = XConfig.actorSystem.actorOf(Props[DBManager])
 
   private def makeHash(name:String):String = {
     val digestedBytes = MessageDigest.getInstance("MD5").digest((Config.secureKey + name).getBytes)
@@ -45,7 +48,7 @@ class SignalingManager extends Actor with Log{
       val hash = makeHash(name+FROM+loginSvc)
       sender ! MsgFromManager(hash)
 
-    case MsgFromClient(msg, name) =>
+    case m @ MsgFromClient(msg, name) =>
       val msgObj:Map[String, String] = Json.parse[Map[String, String]](msg)
       // required
       val tag      = msgObj.getOrElse(MsgKeys.TAG,       UNKOWN)
@@ -56,6 +59,10 @@ class SignalingManager extends Actor with Log{
       val toUser   = msgObj.getOrElse(MsgKeys.TO_USER,   UNKOWN) // name+ "_from_" + loginsvc
       val data     = msgObj.getOrElse(MsgKeys.DATA,      UNKOWN)
       val seq      = msgObj.getOrElse(MsgKeys.SEQ,       -1)
+
+      // save dump to mongoDB
+      dbMaganer ! Dump(msgObj, sender.toString)
+
       if (isInvalidMsg(tag, loginSvc, fromUser)) {
         log.warn("Invalid message: " + msgObj.toString)
         sender ! MsgFromManager(Json.generate(

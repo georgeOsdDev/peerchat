@@ -52,6 +52,8 @@ libraryDependencies += "org.twitter4j" % "twitter4j-core" % "3.0.3"
 
 libraryDependencies += "net.databinder.dispatch" %% "dispatch-core" % "0.11.0"
 
+libraryDependencies += "org.mongodb" %% "casbah" % "2.7.0-RC0"
+
 scalacOptions += "-P:continuations:enable"
 
 // Put config directory in classpath for easier development --------------------

@@ -14,9 +14,16 @@ class GithubConfig(config: TConfig) {
   val userAPIURL      = config.getString("UserAPIURL")
 }
 
+class DBConfig(config: TConfig) {
+  val host = config.getString("host")
+  val port = config.getInt("port")
+}
+
 object Config {
   private val authConfig = xitrum.Config.application.getConfig("auth")
   val twitter   = new TwitterConfig(authConfig.getConfig("twitter"))
   val github    = new GithubConfig(authConfig.getConfig("github"))
   val secureKey = authConfig.getString("secureKey")
+  val db        = new DBConfig(xitrum.Config.application.getConfig("db"))
+
 }
