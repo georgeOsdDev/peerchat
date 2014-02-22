@@ -9,9 +9,9 @@
 </head>
 <body>
 <div id="loginButtons">
-  <p><i class="fa fa-twitter"></i><a id="twlogin" class="authButton" href="http://127.0.0.1:8000/twlogin">Sign in with Twitter</a></p>
+  <p><i class="fa fa-twitter"></i><a id="twitterLoginUrl" class="authButton" href="">Sign in with Twitter</a></p>
   <!-- TODO Change client_id dynamicaly by fs.readFile config -->
-  <p><i class="fa fa-github"></i><a id="ghlogin" class="authButton" href="https://github.com/login/oauth/authorize?client_id=7c32db577ead973ce93f">Sign in with Github</a></p>
+  <p><i class="fa fa-github"></i><a id="githubLoginUrl" class="authButton" href="">Sign in with Github</a></p>
 </div>
 <div id="user" style="display:none;">
   <img id="avatarUrl"></img>
@@ -28,119 +28,127 @@
 //      : Add style
 //      : Move js/css to external file
 
-var nwgui = require('nw.gui');
+var nwgui        = require('nw.gui'),
+    configReader = require('./js/configReader.js')
+    ;
+
+
 (function(GLOBAL){
-  var PeerChat = {}
+  configReader.readJson('./config/auth.conf', function(err, data){
+    if (err) return false;
+    var config = data;
 
+    var PeerChat = {}
+    var authPop, authPopNw, askUserInfoInterval, socket;
 
-  var authPop, authPopNw, askUserInfoInterval, socket;
-
-  socket = new WebSocket("ws://127.0.0.1:8000/signaling");
-  socket.onopen = function(event) {
-    console.log(event);
-  };
-  socket.onclose = function(event) {
-    console.log(event);
-  };
-  socket.onmessage = function(event) {
-    console.log(event);
-    var message = event.data ? JSON.parse(event.data) : {};
-    if (message.tag === "join") {
-      startLocalVideo();
-    }
-  };
-
-  function startLocalVideo(){
-    navigator.webkitGetUserMedia(
-      { audio: true, video: true },
-      function(stream) {
-        $("#localVideo").attr("src", window.webkitURL.createObjectURL(stream));
-
-        // TODO : connect peer and stream
-        // peer.addStream(stream)
-      },
-      function(err) {
-          console.log("err",arguments);
+    socket = new WebSocket(config.signalingUrl);
+    socket.onopen = function(event) {
+      console.log(event);
+    };
+    socket.onclose = function(event) {
+      console.log(event);
+    };
+    socket.onmessage = function(event) {
+      console.log(event);
+      var message = event.data ? JSON.parse(event.data) : {};
+      if (message.tag === "join") {
+        startLocalVideo();
       }
-    );
-  }
+    };
 
-  function renderUserInfo(userName, avatarUrl, loginSvc){
-    $("#userName").text(userName);
-    $("#loginSvc").text(loginSvc);
-    $("#avatarUrl").attr("src", avatarUrl);
-    $("#user").show();
-    $("#loginButtons").hide();
+    function startLocalVideo(){
+      navigator.webkitGetUserMedia(
+        { audio: true, video: true },
+        function(stream) {
+          $("#localVideo").attr("src", window.webkitURL.createObjectURL(stream));
 
-    // save in memory
-    PeerChat.userName = userName;
-    PeerChat.loginSvc = loginSvc;
-  }
-  function renderLoginFail(){
-  }
-
-
-  // Receive userInfo from auth popup via window.PostMessage
-  function postMessageListner(e){
-    if (!e || !e.data || e.data === "__ready__") return;
-    clearInterval(askUserInfoInterval);
-    authPop = null;
-
-    var message = JSON.parse(e.data);
-    if (message.error.error) {
-      console.log("loginFail", message.error);
-      renderLoginFail();
-    } else {
-      renderUserInfo(message.userName, message.avatarUrl, message.loginSvc);
-      // Join signaling Server with generated hash
-      socket.send(JSON.stringify({
-          "tag"     :"join",
-          "fromUser":message.userName,
-          "loginSvc":message.loginSvc,
-          "hash"    :message.hash
-        })
+          // TODO : connect peer and stream
+          // peer.addStream(stream)
+        },
+        function(err) {
+            console.log("err",arguments);
+        }
       );
     }
-    window.removeEventListener("message", postMessageListner);
-  }
 
-  $(function(){
-    $(".authButton").on("click",function(e){
-      e.preventDefault();
-      if (authPop) return false;
+    function renderUserInfo(userName, avatarUrl, loginSvc){
+      $("#userName").text(userName);
+      $("#loginSvc").text(loginSvc);
+      $("#avatarUrl").attr("src", avatarUrl);
+      $("#user").show();
+      $("#loginButtons").hide();
 
-      // This index.html is in "file://" protocol.
-      // So receive auth information from server in http(s) protocol,
-      // Create new popup window.
-      var setting = [
-            "menubar=no",
-            "location=no",
-            "resizable=yes",
-            "scrollbars=yes",
-            "status=yes"
-          ].join(",");
+      // save in memory
+      PeerChat.userName = userName;
+      PeerChat.loginSvc = loginSvc;
+    }
+    function renderLoginFail(){
+    }
 
-      authPop = window.open(this.href, $(this).attr("id"), setting);
-      // Listen popup and as nodewebkit-window
-      authPopNw = nwgui.Window.get(authPop).on('loaded', function(){
-        // Sometimes "Uncaught ReferenceError: require is not defined" happen.
-        // https://github.com/rogerwang/node-webkit/issues/809
-        this.window.require = require;
+
+    // Receive userInfo from auth popup via window.PostMessage
+    function postMessageListner(e){
+      if (!e || !e.data || e.data === "__ready__") return;
+      clearInterval(askUserInfoInterval);
+      authPop = null;
+
+      var message = JSON.parse(e.data);
+      if (message.error.error) {
+        console.log("loginFail", message.error);
+        renderLoginFail();
+      } else {
+        renderUserInfo(message.userName, message.avatarUrl, message.loginSvc);
+        // Join signaling Server with generated hash
+        socket.send(JSON.stringify({
+            "tag"     :"join",
+            "fromUser":message.userName,
+            "loginSvc":message.loginSvc,
+            "hash"    :message.hash
+          })
+        );
+      }
+      window.removeEventListener("message", postMessageListner);
+    }
+
+    $(function(){
+      $(".authButton").on("click",function(e){
+        e.preventDefault();
+        if (authPop) return false;
+
+        // This index.html is in "file://" protocol.
+        // So receive auth information from server in http(s) protocol,
+        // Create new popup window.
+        var setting = [
+              "menubar=no",
+              "location=no",
+              "resizable=yes",
+              "scrollbars=yes",
+              "status=yes"
+            ].join(",");
+
+        var id = $(e.currentTarget).attr('id');
+        authPop = window.open(config[id], $(this).attr("id"), setting);
+        // Listen popup and as nodewebkit-window
+        authPopNw = nwgui.Window.get(authPop).on('loaded', function(){
+          // Sometimes "Uncaught ReferenceError: require is not defined" happen.
+          // https://github.com/rogerwang/node-webkit/issues/809
+          this.window.require = require;
+        });
+        // Send ping until userInfo will returned.
+        askUserInfoInterval = setInterval(function(){
+          authPop.postMessage("give me userInfo","*");
+          if (authPop.closed) {
+            postMessageListner();
+            authPop = null;
+          };
+        },1000);
+        window.addEventListener("message", postMessageListner, false);
       });
-      // Send ping until userInfo will returned.
-      askUserInfoInterval = setInterval(function(){
-        authPop.postMessage("give me userInfo","*");
-        if (authPop.closed) {
-          postMessageListner();
-          authPop = null;
-        };
-      },1000);
-      window.addEventListener("message", postMessageListner, false);
     });
-  });
 
   // export for debug
   GLOBAL.PeerChat = PeerChat;
+  });
 })(this);
 </script>
 </body>
