@@ -5,21 +5,47 @@
 <meta name="description" content="">
 <meta http-equiv=”Content-Type” content=”text/html; charset=UTF-8″ />
 <title>peerchat</title>
-<link href="http://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+<link href="./css/bootstrap.min.css" rel="stylesheet">
+<link href="./css/font-awesome.css" rel="stylesheet">
+<link href="./css/style.css" rel="stylesheet">
 </head>
 <body>
-<div id="loginButtons">
-  <p><i class="fa fa-twitter"></i><a id="twitterLoginUrl" class="authButton" href="">Sign in with Twitter</a></p>
-  <!-- TODO Change client_id dynamicaly by fs.readFile config -->
-  <p><i class="fa fa-github"></i><a id="githubLoginUrl" class="authButton" href="">Sign in with Github</a></p>
-</div>
-<div id="user" style="display:none;">
-  <img id="avatarUrl"></img>
-  <p><span id="userName"></span>_from_<span id="loginSvc"></span></p>
-</div>
-<video id="localVideo" style="display:none;" autoplay="true" control></video>
-<video id="remoteVideo" style="display:none;" autoplay="true" control></video>
-<script src="http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
+<div id="wrap">
+
+  <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+
+    <div class="container-fluid">
+      <div class="collapse navbar-collapse">
+        <ul class="nav navbar-nav">
+          <li>
+            <a id="twitterLoginUrl" class="authButton" href=""><i class="fa fa-twitter"></i>Sign in with Twitter</a>
+          </li>
+          <li>
+            <a id="githubLoginUrl" class="authButton" href=""><i class="fa fa-github"></i>Sign in with Github</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <div id="main" class="container">
+    <div class="col-md-4 col-md-offset-4">
+      <div id="user" style="display:none;">
+        <img id="avatarUrl"></img>
+        <p><span id="userName"></span>_from_<span id="loginSvc"></span></p>
+      </div>
+      <div id="members">
+
+      </div>
+    </div>
+    <div class="col-md-4 col-md-offset-4">
+      <video id="localVideo" style="display:none;" autoplay="true" control></video>
+      <video id="remoteVideo" style="display:none;" autoplay="true" control></video>
+    </div>
+  </div> <!-- /container -->
+
+<script src="./js/jquery.min.js"></script>
+<script src="./js/main.js"></script>
 <script type="text/javascript">
 
 // Todo : Add code about user list
@@ -27,129 +53,6 @@
 //      : Clean up code
 //      : Add style
 //      : Move js/css to external file
-
-var nwgui        = require('nw.gui'),
-    configReader = require('./js/configReader.js')
-    ;
-
-
-(function(GLOBAL){
-  configReader.readJson('./config/auth.conf', function(err, data){
-    if (err) return false;
-    var config = data;
-
-    var PeerChat = {}
-    var authPop, authPopNw, askUserInfoInterval, socket;
-
-    socket = new WebSocket(config.signalingUrl);
-    socket.onopen = function(event) {
-      console.log(event);
-    };
-    socket.onclose = function(event) {
-      console.log(event);
-    };
-    socket.onmessage = function(event) {
-      console.log(event);
-      var message = event.data ? JSON.parse(event.data) : {};
-      if (message.tag === "join") {
-        startLocalVideo();
-      }
-    };
-
-    function startLocalVideo(){
-      navigator.webkitGetUserMedia(
-        { audio: true, video: true },
-        function(stream) {
-          $("#localVideo").attr("src", window.webkitURL.createObjectURL(stream));
-
-          // TODO : connect peer and stream
-          // peer.addStream(stream)
-        },
-        function(err) {
-            console.log("err",arguments);
-        }
-      );
-    }
-
-    function renderUserInfo(userName, avatarUrl, loginSvc){
-      $("#userName").text(userName);
-      $("#loginSvc").text(loginSvc);
-      $("#avatarUrl").attr("src", avatarUrl);
-      $("#user").show();
-      $("#loginButtons").hide();
-
-      // save in memory
-      PeerChat.userName = userName;
-      PeerChat.loginSvc = loginSvc;
-    }
-    function renderLoginFail(){
-    }
-
-
-    // Receive userInfo from auth popup via window.PostMessage
-    function postMessageListner(e){
-      if (!e || !e.data || e.data === "__ready__") return;
-      clearInterval(askUserInfoInterval);
-      authPop = null;
-
-      var message = JSON.parse(e.data);
-      if (message.error.error) {
-        console.log("loginFail", message.error);
-        renderLoginFail();
-      } else {
-        renderUserInfo(message.userName, message.avatarUrl, message.loginSvc);
-        // Join signaling Server with generated hash
-        socket.send(JSON.stringify({
-            "tag"     :"join",
-            "fromUser":message.userName,
-            "loginSvc":message.loginSvc,
-            "hash"    :message.hash
-          })
-        );
-      }
-      window.removeEventListener("message", postMessageListner);
-    }
-
-    $(function(){
-      $(".authButton").on("click",function(e){
-        e.preventDefault();
-        if (authPop) return false;
-
-        // This index.html is in "file://" protocol.
-        // So receive auth information from server in http(s) protocol,
-        // Create new popup window.
-        var setting = [
-              "menubar=no",
-              "location=no",
-              "resizable=yes",
-              "scrollbars=yes",
-              "status=yes"
-            ].join(",");
-
-        var id = $(e.currentTarget).attr('id');
-        authPop = window.open(config[id], $(this).attr("id"), setting);
-        // Listen popup and as nodewebkit-window
-        authPopNw = nwgui.Window.get(authPop).on('loaded', function(){
-          // Sometimes "Uncaught ReferenceError: require is not defined" happen.
-          // https://github.com/rogerwang/node-webkit/issues/809
-          this.window.require = require;
-        });
-        // Send ping until userInfo will returned.
-        askUserInfoInterval = setInterval(function(){
-          authPop.postMessage("give me userInfo","*");
-          if (authPop.closed) {
-            postMessageListner();
-            authPop = null;
-          };
-        },1000);
-        window.addEventListener("message", postMessageListner, false);
-      });
-    });
-
-  // export for debug
-  GLOBAL.PeerChat = PeerChat;
-  });
-})(this);
 </script>
 </body>
 </html>
