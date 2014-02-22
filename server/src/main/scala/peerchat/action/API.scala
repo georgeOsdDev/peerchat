@@ -21,11 +21,32 @@ class Empty extends Action with SkipCsrfCheck{
   }
 }
 
+trait ApiCallback extends ActorAction{
+  this: Actor =>
+  var userName:String
+  var avatarUrl:String
+  val SERVICE_NAME:String
+
+  def doWithManager(manager:ActorRef){
+    manager ! MsgForAuth(userName, SERVICE_NAME)
+    context.become {
+      case MsgFromManager(hash) =>
+        at("userName")  = userName
+        at("avatarUrl") = avatarUrl
+        at("loginSvc")  = SERVICE_NAME
+        at("hash") = hash
+        respondView[Empty]()
+      case unexpected =>
+        log.warn("Unexpected message: " + unexpected)
+    }
+  }
+}
+
 @GET("/ghcb")
-class GHCallback extends ActorAction with RegistryLookup with SkipCsrfCheck{
-  private var userName:String  = _
-  private var avatarUrl:String = _
-  private val SERVICE_NAME = "GitHub"
+class GHCallback extends ApiCallback with RegistryLookup with SkipCsrfCheck{
+  var userName:String  = _
+  var avatarUrl:String = _
+  val SERVICE_NAME = "GitHub"
 
   override def execute() {
     val authReq = Github.getAuthRequest(param("code").toString)
@@ -56,19 +77,6 @@ class GHCallback extends ActorAction with RegistryLookup with SkipCsrfCheck{
         respondView[Empty]()
     }
   }
-  override def doWithManager(manager:ActorRef){
-    manager ! MsgForAuth(userName, SERVICE_NAME)
-    context.become {
-      case MsgFromManager(hash) =>
-        at("userName")  = userName
-        at("avatarUrl") = avatarUrl
-        at("loginSvc")  = SERVICE_NAME
-        at("hash") = hash
-        respondView[Empty]()
-      case unexpected =>
-        log.warn("Unexpected message: " + unexpected)
-    }
-  }
 }
 
 @GET("/twlogin")
@@ -83,13 +91,12 @@ class TWLogin extends Action with SkipCsrfCheck{
 }
 
 @GET("/twcb")
-class TWCallback extends ActorAction with RegistryLookup with SkipCsrfCheck{
-  private var userName:String  = _
-  private var avatarUrl:String = _
-  private val SERVICE_NAME = "Twitter"
+class TWCallback extends ApiCallback with RegistryLookup with SkipCsrfCheck{
+  var userName:String  = _
+  var avatarUrl:String = _
+  val SERVICE_NAME = "Twitter"
 
   override def execute(){
-    session
     val twInstance   = Twitter.getInstanceFromSession(session)
     val requestToken = Twitter.getRequestTokenFromSession(session)
     val verifier     = param("oauth_verifier")
@@ -118,20 +125,5 @@ class TWCallback extends ActorAction with RegistryLookup with SkipCsrfCheck{
         respondView[Empty]()
     }
   }
-
-  override def doWithManager(manager:ActorRef){
-    manager ! MsgForAuth(userName, SERVICE_NAME)
-    context.become {
-      case MsgFromManager(hash) =>
-        at("userName")  = userName
-        at("avatarUrl") = avatarUrl
-        at("loginSvc")  = SERVICE_NAME
-        at("hash") = hash
-        respondView[Empty]()
-      case unexpected =>
-        log.warn("Unexpected message: " + unexpected)
-    }
-  }
-
 }
 
