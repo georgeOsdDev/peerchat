@@ -6,7 +6,9 @@
   "dependencies": {
     "nodewebkit": "~0.8.4-2"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "bower": "~1.2.8"
+  },
   "scripts": {
     "start": "./node_modules/nodewebkit/bin/nodewebkit"
   },
@@ -25,15 +27,15 @@
     "url": "https://github.com/georgeosddev/peerchat/issues"
   },
   "window": {
-      "title": "nwoauth",
-      "toolbar": true,
-      "frame": true,
-      "width": 800,
-      "height": 500,
-      "position": "mouse",
-      "min_width": 400,
-      "min_height": 200,
-      "max_width": 800,
-      "max_height": 600
+    "title": "nwoauth",
+    "toolbar": true,
+    "frame": true,
+    "width": 800,
+    "height": 500,
+    "position": "mouse",
+    "min_width": 400,
+    "min_height": 200,
+    "max_width": 800,
+    "max_height": 600
   }
 }
