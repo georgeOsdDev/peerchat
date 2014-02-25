@@ -10,18 +10,49 @@
 <link href="./css/style.css" rel="stylesheet">
 </head>
 <body>
-<div id="loginButtons">
-  <p><i class="fa fa-twitter"></i><a id="twitterLoginUrl" data-url="twitterLoginUrl" class="authButton" href="#">Sign in with Twitter</a></p>
-  <!-- TODO Change client_id dynamicaly by fs.readFile config -->
-  <p><i class="fa fa-github"></i><a id="githubLoginUrl"   data-url="githubLoginUrl" class="authButton" href="#">Sign in with Github</a></p>
-</div>
-<div id="user" style="display:none;">
-  <img id="avatarUrl"></img>
-  <p><span id="userName"></span>_from_<span id="loginSvc"></span></p>
+
+<div id="wrap">
+
+  <nav class="navbar navbar-default navbar-fixed-top" role="navigation">
+
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <a class="navbar-brand" href="#">PeerChat</a>
+      </div>
+
+      <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+        <ul class="nav navbar-nav navbar-right">
+          <li class="hide" id="user">
+            <a href="#"><img id="avatarUrl"></img>&nbsp;<span id="userName"></span><i id="loginSvc" class="fa "></i></a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+
+
+  <div id="login" class="container">
+    <div class="col-md-4 col-md-offset-4">
+      <div id="loginButtons">
+        <p><i class="fa fa-twitter"></i><a id="twitterLoginUrl" data-url="twitterLoginUrl" class="authButton" href="#">Sign in with Twitter</a></p>
+        <!-- TODO Change client_id dynamicaly by fs.readFile config -->
+        <p><i class="fa fa-github"></i><a id="githubLoginUrl"   data-url="githubLoginUrl" class="authButton" href="#">Sign in with Github</a></p>
+      </div>
+    </div>
+  </div> <!-- /container -->
+
+  <div id="contact_list" class="container">
+
+  </div>
+
 </div>
 <video id="localVideo" style="display:none;" autoplay="true" control></video>
 <video id="remoteVideo" style="display:none;" autoplay="true" control></video>
-<script type="text/template" id="user">
+<script type="text/template" id="member_tpl">
+  <div id=<%= member%>>
+    <span class="contactName"><%= name %></span><i id="loginSvc" class="fa <%= loginSvc%>"></i>
+  </div>
 </script>
 <script src="./bower_components/jquery/dist/jquery.min.js"></script>
 <script src="./bower_components/underscore/underscore.js"></script>

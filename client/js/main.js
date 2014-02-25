@@ -2,8 +2,14 @@
   var nwgui            = require('nw.gui'),
       configReader     = require('./js/lib/configReader.js'),
       authHandler      = require('./js/lib/authHandler.js'),
-      SignalingChannel = require('./js/lib/signalingChannel.js').SignalingChannel
+      SignalingChannel = require('./js/lib/signalingChannel.js').SignalingChannel,
+      logger           = require('./js/lib/logger.js')
       ;
+
+
+
+  var memberTpl = _.template($("#member_tpl").html());
+
 
   configReader.readJson('./config/auth.conf', function(err, _config){
     if (err) return false;
@@ -14,9 +20,8 @@
 
 
 
-    // signalingChannel.on("join",       showMember);
-    // signalingChannel.on("new_member", addMember);
-    // signalingChannel.on("leave",      removeMember);
+    signalingChannel.on("new_member", appendToContactList);
+    signalingChannel.on("leave",      removeFromContactList);
 
 
     function startLocalVideo(){
@@ -29,33 +34,63 @@
           // peer.addStream(stream)
         },
         function(err) {
-            console.log("err",arguments);
+            logger.log("err",arguments);
         }
       );
     }
 
     function renderUserInfo(userName, avatarUrl, loginSvc){
-      $("#userName").text(userName);
-      $("#loginSvc").text(loginSvc);
+      $("#userName").text(userName + " @ ");
+      $("#loginSvc").addClass("fa-"+loginSvc.toLowerCase());
       $("#avatarUrl").attr("src", avatarUrl);
-      $("#user").show();
-      $(".authButton").hide();
+      $("#user").removeClass("hide");
+      $("#login").hide();
     }
-    function renderMember(){}
+
+    function saveMyInfo(userName, avatarUrl, loginSvc){
+      PeerChat.userName  = userName;
+      PeerChat.avatarUrl = avatarUrl;
+      PeerChat.loginSvc  = loginSvc;
+    }
+
+    function removeFromContactList(member){
+      logger.log("Leave", member);
+      $("#"+member).remove();
+    }
+
+    function appendToContactList(member){
+      if (PeerChat.userName + "_from_" + PeerChat.loginSvc === member) return false;
+
+      var token    = member.split("_from_"),
+          name     = token[0],
+          loginSvc = token[1]
+          ;
+
+      $("#contact_list").append(memberTpl({
+                                  member:member,
+                                  name:name + " @ ",
+                                  loginSvc:"fa-"+loginSvc.toLowerCase()
+                                })
+      );
+    }
+
+    function renderMember(members){
+      _.each(members, appendToContactList);
+    }
 
     function renderLoginFail(){
     }
 
     function authSuccess(data){
       renderUserInfo(data.userName, data.avatarUrl, data.loginSvc);
+      saveMyInfo(data.userName, data.avatarUrl, data.loginSvc);
       signalingChannel.join(data, function(res){
-        // render member
         renderMember(res.data);
       });
       authProcess = false;
     }
     function authFail(error){
-      console.log(error);
+      logger.log(error);
       renderLoginFail();
       authProcess = false;
     }

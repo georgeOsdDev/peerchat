@@ -1,3 +1,27 @@
-body {
-	margin:40px 20px 0;
+html {
+  height: 100%;
+}
+
+.hide {
+  display:none;
+}
+.hidden {
+  visibility: hidden;
+}
+
+#wrap{
+  height: auto;
+}
+
+#login {
+  text-align:center;
+  padding-top: 200px;
+}
+
+#avatarUrl {
+  width:20px;
+}
+
+#contact_list{
+  margin-top:100px;
 }

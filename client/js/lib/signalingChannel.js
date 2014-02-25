@@ -1,5 +1,6 @@
 var EventEmitter = require('events').EventEmitter,
-    util         = require('util')
+    util         = require('util'),
+    logger       = require('./logger.js')
     ;
 
 (function(){
@@ -8,12 +9,15 @@ var EventEmitter = require('events').EventEmitter,
     this.cbs = [];
   }
   Callbacks.prototype.invoke = function(seq, param){
+    logger.log("invoke",seq,param);
+    logger.log(this.cbs[seq]);
     if (typeof this.cbs[seq] === "function") this.cbs[seq](param);
   };
   Callbacks.prototype.nextSeq = function(func){
       var _seq = this.seq;
       this.cbs[_seq] = func;
       this.seq++;
+      logger.log("setCb",_seq,func);
       return _seq;
   };
 
@@ -34,35 +38,31 @@ var EventEmitter = require('events').EventEmitter,
       self.emit(event);
     };
     this.socket.onclose = function(event) {
-      console.log(event);
+      logger.log(event);
       self.emit(event);
     };
     this.socket.onmessage = function(event) {
-      console.log(event);
+      logger.log(event);
       var message = event.data ? JSON.parse(event.data) : {};
-      if (message.seq) return self.cbs.invoke(message.seq, message);
+      if (message.seq !== undefined) return self.cbs.invoke(message.seq, message);
       switch (message.tag) {
-        case "join":
         case "leave":
         case "new_member":
-          break;
-
         case "offer":
-          break;
-
         case "answer":
-          break;
-
         case "candidate":
+          self.emmit(message.tag, message);
+          break;
+        case "join":
+          logger.log("join should contain `seq`", message);
           break;
         default:
-          console.log("Unknown message tag", message);
+          logger.log("Unknown message tag", message);
       }
     };
   };
 
   SignalingChannel.prototype.join = function(obj, func) {
-    console.log(this);
     var seq       = this.cbs.nextSeq(func);
     this.userName = obj.userName;
     this.loginSvc = obj.loginSvc;
