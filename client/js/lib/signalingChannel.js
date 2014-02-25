@@ -9,8 +9,6 @@ var EventEmitter = require('events').EventEmitter,
     this.cbs = [];
   }
   Callbacks.prototype.invoke = function(seq, param){
-    logger.log("invoke",seq,param);
-    logger.log(this.cbs[seq]);
     if (typeof this.cbs[seq] === "function") this.cbs[seq](param);
   };
   Callbacks.prototype.nextSeq = function(func){
