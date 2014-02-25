@@ -3,6 +3,7 @@
       configReader     = require('./js/lib/configReader.js'),
       authHandler      = require('./js/lib/authHandler.js'),
       SignalingChannel = require('./js/lib/signalingChannel.js').SignalingChannel,
+      interval         = require('./js/lib/ExponentialBackoff.js'),
       logger           = require('./js/lib/logger.js')
       ;
 
@@ -22,7 +23,16 @@
 
     signalingChannel.on("new_member", appendToContactList);
     signalingChannel.on("leave",      removeFromContactList);
+    signalingChannel.on("close",      reconnect);
 
+
+    function reconnect(){
+      var delay = interval.nextDelay();
+      logger.log("Retry connect after " + delay + "ms...");
+      setTimeout(function(){
+        signalingChannel.reconnect(new WebSocket(config.signalingUrl));
+      },delay);
+    }
 
     function startLocalVideo(){
       navigator.webkitGetUserMedia(
@@ -30,8 +40,7 @@
         function(stream) {
           $("#localVideo").attr("src", window.webkitURL.createObjectURL(stream));
 
-          // TODO : connect peer and stream
-          // peer.addStream(stream)
+          peer.addStream(stream);
         },
         function(err) {
             logger.log("err",arguments);
@@ -54,31 +63,38 @@
     }
 
     function removeFromContactList(member){
-      logger.log("Leave", member);
+      if (typeof member === "object") member = member.data;
       $("#"+member).remove();
     }
 
     function appendToContactList(member){
+      if (typeof member === "object") member = member.data;
+
       if (PeerChat.userName + "_from_" + PeerChat.loginSvc === member) return false;
 
       var token    = member.split("_from_"),
           name     = token[0],
           loginSvc = token[1]
           ;
-
-      $("#contact_list").append(memberTpl({
-                                  member:member,
-                                  name:name + " @ ",
-                                  loginSvc:"fa-"+loginSvc.toLowerCase()
-                                })
-      );
+      var compiled = memberTpl({
+                        member:member,
+                        name:name + " @ ",
+                        loginSvc:"fa-"+loginSvc.toLowerCase()
+                      });
+      $("#contact_list").append(compiled);
     }
 
     function renderMember(members){
+      $("#contact_list").empty();
       _.each(members, appendToContactList);
     }
 
     function renderLoginFail(){
+    }
+
+    function startOffer(member){
+      logger.log("start offer to", member);
+      signaling.channel.offer()
     }
 
     function authSuccess(data){
@@ -97,6 +113,7 @@
 
     $(function(){
       var authProcess = false;
+
       $(".authButton").on("click",function(e){
         var setting, url, authPop;
 
@@ -118,6 +135,13 @@
         });
         authProcess = authHandler.startAuthentication(window, authPop, authSuccess, authFail);
       });
+
+      $("#contact_list").on("click", ".contact", function (e) {
+        e.preventDefault();
+        var $el = $(e.currentTarget);
+        startOffer($el.data("member"));
+      });
+
     });
   });
 })(this);

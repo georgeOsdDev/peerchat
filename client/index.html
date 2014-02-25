@@ -50,8 +50,8 @@
 <video id="localVideo" style="display:none;" autoplay="true" control></video>
 <video id="remoteVideo" style="display:none;" autoplay="true" control></video>
 <script type="text/template" id="member_tpl">
-  <div id=<%= member%>>
-    <span class="contactName"><%= name %></span><i id="loginSvc" class="fa <%= loginSvc%>"></i>
+  <div id="<%= member%>" data-member="<%= member%>" class="contact">
+    <a href="#"><span class="contactName"><%= name %></span><i id="loginSvc" class="fa <%= loginSvc%>"></i></a>
   </div>
 </script>
 <script src="./bower_components/jquery/dist/jquery.min.js"></script>

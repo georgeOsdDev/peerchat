@@ -1,6 +1,6 @@
-var EventEmitter = require('events').EventEmitter,
-    util         = require('util'),
-    logger       = require('./logger.js')
+var EventEmitter       = require('events').EventEmitter,
+    util               = require('util'),
+    logger             = require('./logger.js')
     ;
 
 (function(){
@@ -30,17 +30,34 @@ var EventEmitter = require('events').EventEmitter,
   }
   util.inherits(SignalingChannel, EventEmitter);
 
+  SignalingChannel.prototype.reconnect = function(_socket){
+    var self = this;
+    this.socket = _socket;
+    self.initSocket();
+
+    var seq = this.cbs.nextSeq(this.joinFunc);
+    _socket.send(JSON.stringify({
+        "seq"     :seq,
+        "tag"     :"join",
+        "fromUser":self.userName,
+        "loginSvc":self.loginSvc,
+        "hash"    :self.hash
+      })
+    );
+  };
+
   SignalingChannel.prototype.initSocket = function() {
     var self    = this;
     this.socket.onopen = function(event) {
-      self.emit(event);
+      logger.log("Socket open",event);
+      self.emit("open");
     };
     this.socket.onclose = function(event) {
-      logger.log(event);
-      self.emit(event);
+      logger.log("Socket close",event);
+      self.emit("close");
     };
     this.socket.onmessage = function(event) {
-      logger.log(event);
+      logger.log("Socket receive message",event);
       var message = event.data ? JSON.parse(event.data) : {};
       if (message.seq !== undefined) return self.cbs.invoke(message.seq, message);
       switch (message.tag) {
@@ -49,7 +66,8 @@ var EventEmitter = require('events').EventEmitter,
         case "offer":
         case "answer":
         case "candidate":
-          self.emmit(message.tag, message);
+          logger.log("emit as SignalingChanel event", message.tag);
+          self.emit(message.tag, message);
           break;
         case "join":
           logger.log("join should contain `seq`", message);
@@ -64,6 +82,8 @@ var EventEmitter = require('events').EventEmitter,
     var seq       = this.cbs.nextSeq(func);
     this.userName = obj.userName;
     this.loginSvc = obj.loginSvc;
+    this.hash     = obj.hash;
+    this.joinFunc = func;
     // Join signaling Server with generated hash
     this.socket.send(JSON.stringify({
         "seq"     :seq,
