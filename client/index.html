@@ -11,9 +11,9 @@
 </head>
 <body>
 <div id="loginButtons">
-  <p><i class="fa fa-twitter"></i><a id="twlogin" class="authButton" href="http://127.0.0.1:8000/twlogin">Sign in with Twitter</a></p>
+  <p><i class="fa fa-twitter"></i><a id="twitterLoginUrl" data-url="twitterLoginUrl" class="authButton" href="#">Sign in with Twitter</a></p>
   <!-- TODO Change client_id dynamicaly by fs.readFile config -->
-  <p><i class="fa fa-github"></i><a id="ghlogin" class="authButton" href="https://github.com/login/oauth/authorize?client_id=7c32db577ead973ce93f">Sign in with Github</a></p>
+  <p><i class="fa fa-github"></i><a id="githubLoginUrl"   data-url="githubLoginUrl" class="authButton" href="#">Sign in with Github</a></p>
 </div>
 <div id="user" style="display:none;">
   <img id="avatarUrl"></img>

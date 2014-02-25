@@ -7,7 +7,7 @@
 
   configReader.readJson('./config/auth.conf', function(err, _config){
     if (err) return false;
-    var config           = _config,
+    var config = _config,
         signalingChannel = new SignalingChannel(new WebSocket(config.signalingUrl)),
         PeerChat         = {}
         ;
@@ -63,7 +63,7 @@
     $(function(){
       var authProcess = false;
       $(".authButton").on("click",function(e){
-        var setting, id, authPop;
+        var setting, url, authPop;
 
         e.preventDefault();
         if (authProcess) return false;
@@ -73,8 +73,8 @@
         // Create new popup window.
         setting = ["menubar=no","location=no","resizable=yes",
                    "scrollbars=yes","status=yes"].join(",");
-        id      = $(e.currentTarget).attr('id');
-        authPop = window.open(config[id], id, setting);
+        url     = $(e.currentTarget).data('url');
+        authPop = window.open(config[url], url, setting);
         // Listen popup and as nodewebkit-window
         authPopNw = nwgui.Window.get(authPop).on('loaded', function(){
           // Sometimes "Uncaught ReferenceError: require is not defined" happen.
