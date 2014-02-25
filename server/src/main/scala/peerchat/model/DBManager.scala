@@ -27,6 +27,7 @@ object DBManager {
 }
 
 class DBManager extends Actor with Log {
+  Log.debug("DBManager Initialized")
   def receive = {
     case Dump(msg, senderName) =>
       val m = MongoDBObject("msg" -> msg.asDBObject, "senderName" -> senderName)

@@ -43,7 +43,7 @@ trait ApiCallback extends ActorAction{
 }
 
 @GET("/ghcb")
-class GHCallback extends ApiCallback with RegistryLookup with SkipCsrfCheck{
+class GHCallback extends ApiCallback with RegistryLookupAction with SkipCsrfCheck{
   var userName:String  = _
   var avatarUrl:String = _
   val SERVICE_NAME = "GitHub"
@@ -91,7 +91,7 @@ class TWLogin extends Action with SkipCsrfCheck{
 }
 
 @GET("/twcb")
-class TWCallback extends ApiCallback with RegistryLookup with SkipCsrfCheck{
+class TWCallback extends ApiCallback with RegistryLookupAction with SkipCsrfCheck{
   var userName:String  = _
   var avatarUrl:String = _
   val SERVICE_NAME = "Twitter"

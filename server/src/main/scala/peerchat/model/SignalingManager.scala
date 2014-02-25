@@ -16,10 +16,6 @@ case class MsgFromClient(msg: String, name: String)
 
 object SignalingManager {
   val NAME = "SignalingManager"
-  val registry = Registry.start(XConfig.actorSystem, "proxy")
-      registry ! Registry.LookupOrCreate(DBManager.NAME)
-
-  def start() {}
 }
 
 class SignalingManager extends Actor with Log{
@@ -31,7 +27,7 @@ class SignalingManager extends Actor with Log{
   private var clientNames = Map[ActorRef, String]()
   private var users       = Map[String, String]()
 
-  lazy val dbMaganer      = XConfig.actorSystem.actorOf(Props[DBManager])
+  private lazy val dbMaganer      = XConfig.actorSystem.actorOf(Props[DBManager])
 
   private def makeHash(name:String):String = {
     val digestedBytes = MessageDigest.getInstance("MD5").digest((Config.secureKey + name).getBytes)

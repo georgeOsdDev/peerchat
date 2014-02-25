@@ -4,10 +4,10 @@ import akka.actor.{Actor, ActorRef, Terminated}
 import xitrum.{WebSocketAction, WebSocketText}
 import xitrum.annotation.WEBSOCKET
 import xitrum.util.Json
-import peerchat.model.{MsgFromManager, MsgFromClient, RegistryLookup, SignalingManager}
+import peerchat.model.{MsgFromManager, MsgFromClient, RegistryLookupAction, SignalingManager}
 
 @WEBSOCKET("signaling")
-class SignalingActor extends WebSocketAction with RegistryLookup {
+class SignalingActor extends WebSocketAction with RegistryLookupAction {
   private var signalingManager: ActorRef = _
   override def execute() {
     lookupManager

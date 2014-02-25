@@ -15,9 +15,9 @@ scalateTemplateConfig in Compile := Seq(TemplateConfig(
 
 organization := "com.github.georgeosddev"
 
-name         := "peerchat"
+name         := "peerchat-server"
 
-version      := "1.0-SNAPSHOT"
+version      := "1.0"
 
 scalaVersion := "2.10.3"
 

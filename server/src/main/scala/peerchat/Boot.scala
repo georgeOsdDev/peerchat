@@ -1,11 +1,11 @@
 package peerchat
 
 import xitrum.Server
-import peerchat.model.SignalingManager
+import peerchat.model.RegistryManager
 
 object Boot {
   def main(args: Array[String]) {
-    SignalingManager.start()
+    RegistryManager.start()
     Server.start()
   }
 }
