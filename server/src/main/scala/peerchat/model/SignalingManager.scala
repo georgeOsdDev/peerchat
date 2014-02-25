@@ -95,6 +95,7 @@ class SignalingManager extends Actor with Log{
                         .updated(MsgKeys.ERR_CD,    ErrCds.NORMAL)
                 )
               )
+            context.watch(sender)
             clients = clients.updated(fromUser+FROM+loginSvc, sender)
             clientNames = clientNames.updated(sender, fromUser+FROM+loginSvc)
           }
@@ -146,18 +147,19 @@ class SignalingManager extends Actor with Log{
 
     case Terminated(client) =>
       val clientName = clientNames.getOrElse(client, UNKOWN)
-      clientNames    = clientNames.filterNot(_ == clientName)
-      clients        = clients.filterNot(_ == client)
-        clients.foreach {kv =>
-          val (n, actorRef) = kv
-          actorRef ! MsgFromManager(Json.generate(Map(
-                  MsgKeys.TAG       -> Tags.LEAVE,
-                  MsgKeys.FROM_USER -> SYSTEM,
-                  MsgKeys.DATA      -> clientName
-                )
+      clientNames    = clientNames - client
+      clients        = clients - clientName
+      log.debug("client Terminated :"+clientNames)
+      clients.foreach {kv =>
+        val (n, actorRef) = kv
+        actorRef ! MsgFromManager(Json.generate(Map(
+                MsgKeys.TAG       -> Tags.LEAVE,
+                MsgKeys.FROM_USER -> SYSTEM,
+                MsgKeys.DATA      -> clientName
               )
             )
-        }
+          )
+      }
 
     case unexpected =>
       log.warn("Unexpected message: " + unexpected)
