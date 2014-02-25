@@ -87,4 +87,5 @@ results
 npm-debug.log
 node_modules
 
+client/bower_components
 server/config/auth.conf

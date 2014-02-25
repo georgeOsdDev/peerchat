@@ -1,7 +1,7 @@
 {
-  "name": "nodewebkit-oauth-sample",
+  "name": "peerchat-client",
   "version": "0.0.1",
-  "description": "node-webkit oauth sample",
+  "description": "peerchat client application",
   "main": "index.html",
   "dependencies": {
     "nodewebkit": "~0.8.4-2"
@@ -12,16 +12,17 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/georgeosddev/nodewebkit_oauth_xitrum.git"
+    "url": "https://github.com/georgeosddev/peerchat.git"
   },
   "keywords": [
     "nodewebkit",
-    "oauth"
+    "p2p",
+    "webRTC"
   ],
-  "author": "Takeharu.Oshida",
+  "author": "Takeharu Oshida <georgeosddev@gmail.com>",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/georgeosddev/nodewebkit_oauth_xitrum/issues"
+    "url": "https://github.com/georgeosddev/peerchat/issues"
   },
   "window": {
       "title": "nwoauth",

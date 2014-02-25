@@ -1,0 +1,5 @@
+{
+  "twitterLoginUrl" : "http://127.0.0.1:8000/twlogin",
+  "githubLoginUrl"  : "https://github.com/login/oauth/authorize?client_id=7c32db577ead973ce93f",
+  "signalingUrl"    : "ws://127.0.0.1:8000/signaling"
+}
