@@ -1,9 +1,9 @@
-var EventEmitter       = require('events').EventEmitter,
-    util               = require('util'),
-    logger             = require('./logger.js')
-    ;
-
 (function(){
+  var EventEmitter       = require('events').EventEmitter,
+      util               = require('util'),
+      logger             = require('./logger.js')
+      ;
+
   function Callbacks(){
     this.seq = 0;
     this.cbs = [];
@@ -15,7 +15,6 @@ var EventEmitter       = require('events').EventEmitter,
       var _seq = this.seq;
       this.cbs[_seq] = func;
       this.seq++;
-      logger.log("setCb",_seq,func);
       return _seq;
   };
 
