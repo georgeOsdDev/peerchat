@@ -48,15 +48,15 @@
   SignalingChannel.prototype.initSocket = function() {
     var self    = this;
     this.socket.onopen = function(event) {
-      logger.log("Socket open",event);
+      logger.debug("Socket open",event);
       self.emit("open");
     };
     this.socket.onclose = function(event) {
-      logger.log("Socket close",event);
+      logger.debug("Socket close",event);
       self.emit("close");
     };
     this.socket.onmessage = function(event) {
-      logger.log("Socket receive message",event);
+      logger.debug("Socket receive message");
       var message = event.data ? JSON.parse(event.data) : {};
       if (message.seq !== undefined) return self.cbs.invoke(message.seq, message);
       switch (message.tag) {
@@ -65,14 +65,14 @@
         case "offer":
         case "answer":
         case "candidate":
-          logger.log("emit as SignalingChanel event", message.tag);
+          logger.debug("Emit SignalingChanel event", message.tag);
           self.emit(message.tag, message);
           break;
         case "join":
-          logger.log("join should contain `seq`", message);
+          logger.debug("join should contain `seq`", message);
           break;
         default:
-          logger.log("Unknown message tag", message);
+          logger.warn("Unknown message tag", message);
       }
     };
   };
@@ -96,9 +96,9 @@
 
   SignalingChannel.prototype.offer = function(obj, func) {
     if (!this.userName || !this.loginSvc) return func({errCd: 10,"message":"ClientError: Not authorized."});
-    var self    = this,
-        nextSwq = this.cbs.nextSeq(func);
-    socket.send(JSON.stringify({
+    var self = this,
+        seq  = this.cbs.nextSeq(func);
+    this.socket.send(JSON.stringify({
         "seq"     :seq,
         "tag"     :"offer",
         "fromUser":self.userName,
@@ -111,11 +111,11 @@
 
   SignalingChannel.prototype.answer = function(obj, func) {
     if (!this.userName || !this.loginSvc) return func({errCd: 10,"message":"ClientError: Not authorized."});
-    var self    = this,
-        nextSwq = this.cbs.nextSeq(func);
-    socket.send(JSON.stringify({
+    var self = this,
+        seq  = this.cbs.nextSeq(func);
+    this.socket.send(JSON.stringify({
         "seq"     :seq,
-        "tag"     :"answer",
+        "tag"     :"seq",
         "fromUser":self.userName,
         "loginSvc":self.loginSvc,
         "toUser"  :obj.toUser,
@@ -126,9 +126,9 @@
 
   SignalingChannel.prototype.candidate = function(obj, func) {
     if (!this.userName || !this.loginSvc) return func({errCd: 10,"message":"ClientError: Not authorized."});
-    var self    = this,
-        nextSwq = this.cbs.nextSeq(func);
-    socket.send(JSON.stringify({
+    var self = this,
+        seq  = this.cbs.nextSeq(func);
+    this.socket.send(JSON.stringify({
         "seq"     :seq,
         "tag"     :"candidate",
         "fromUser":self.userName,
@@ -141,12 +141,11 @@
 
   SignalingChannel.prototype.createP2PConnection = function(toUser){
     if (!this.userName || !this.loginSvc) return func({errCd: 10,"message":"ClientError: Not authorized."});
-
   };
 
   SignalingChannel.prototype.endCurrentP2PConnection = function(){
 
   };
 
-  module.exports = SignalingChannel;
+  exports.SignalingChannel = SignalingChannel;
 })();
