@@ -2,6 +2,8 @@ package peerchat.model
 
 import java.security.MessageDigest
 
+import scala.util.parsing.json._
+
 import akka.actor.{Actor, ActorRef, Props, Terminated}
 
 import glokka.Registry
@@ -47,16 +49,27 @@ class SignalingManager extends Actor with Log{
       sender ! MsgFromManager(hash)
 
     case m @ MsgFromClient(msg, name) =>
-      val msgObj:Map[String, String] = Json.parse[Map[String, String]](msg)
-      // required
-      val tag      = msgObj.getOrElse(MsgKeys.TAG,       UNKOWN)
-      val loginSvc = msgObj.getOrElse(MsgKeys.LOGIN_SVC, UNKOWN)
-      val fromUser = msgObj.getOrElse(MsgKeys.FROM_USER, UNKOWN) // name
+
+      val msgObj = JSON.parseFull(msg).get.asInstanceOf[Map[String, Any]]
+      val tag      = msgObj.getOrElse(MsgKeys.TAG,       UNKOWN).asInstanceOf[String]
+      val loginSvc = msgObj.getOrElse(MsgKeys.LOGIN_SVC, UNKOWN).asInstanceOf[String]
+      val fromUser = msgObj.getOrElse(MsgKeys.FROM_USER, UNKOWN).asInstanceOf[String] // name
       // optional
-      val hash     = msgObj.getOrElse(MsgKeys.HASH,      UNKOWN)
-      val toUser   = msgObj.getOrElse(MsgKeys.TO_USER,   UNKOWN) // name+ "_from_" + loginsvc
+      val hash     = msgObj.getOrElse(MsgKeys.HASH,      UNKOWN).asInstanceOf[String]
+      val toUser   = msgObj.getOrElse(MsgKeys.TO_USER,   UNKOWN).asInstanceOf[String] // name+ "_from_" + loginsvc
       val data     = msgObj.getOrElse(MsgKeys.DATA,      UNKOWN)
-      val seq      = msgObj.getOrElse(MsgKeys.SEQ,       -1)
+      val seq      = msgObj.getOrElse(MsgKeys.SEQ,       -1).asInstanceOf[Double]
+
+//      val msgObj:Map[String, String] = Json.parse[Map[String, String]](msg)
+//      // required
+//      val tag      = msgObj.getOrElse(MsgKeys.TAG,       UNKOWN)
+//      val loginSvc = msgObj.getOrElse(MsgKeys.LOGIN_SVC, UNKOWN)
+//      val fromUser = msgObj.getOrElse(MsgKeys.FROM_USER, UNKOWN) // name
+//      // optional
+//      val hash     = msgObj.getOrElse(MsgKeys.HASH,      UNKOWN)
+//      val toUser   = msgObj.getOrElse(MsgKeys.TO_USER,   UNKOWN) // name+ "_from_" + loginsvc
+//      val data     = msgObj.getOrElse(MsgKeys.DATA,      UNKOWN)
+//      val seq      = msgObj.getOrElse(MsgKeys.SEQ,       -1)
 
       if (Config.dumpEnable.getOrElse(false)) // save dump to mongoDB
         dbMaganer ! Dump(msgObj, sender.toString)

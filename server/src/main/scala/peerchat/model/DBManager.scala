@@ -8,7 +8,7 @@ import xitrum.Log
 
 import peerchat.Config
 
-case class Dump(msgObj:Map[String,String], name:String)
+case class Dump(msgObj:Map[String,Any], name:String)
 
 object DBManager {
   val NAME       = "DBManager"
