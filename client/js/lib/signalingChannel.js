@@ -148,5 +148,5 @@
 
   };
 
-  exports.SignalingChannel = SignalingChannel;
+  module.exports = SignalingChannel;
 })();
